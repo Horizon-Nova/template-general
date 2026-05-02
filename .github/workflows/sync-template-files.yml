@@ -1,4 +1,4 @@
-name: 同步模板文件
+name: Sync Template Docs
 
 on:
   workflow_dispatch:
@@ -11,50 +11,53 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: sync-template-docs-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  sync-template-files:
+  sync-template-docs:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     env:
       SOURCE_TEMPLATE_REPOSITORY: https://github.com/Horizon-Nova/template-general.git
       SOURCE_TEMPLATE_BRANCH: main
 
     steps:
-      - name: 取得目前專案內容
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: 設定 Git 身分
+      - name: Configure Git identity
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: 下載來源模板
+      - name: Clone source template
         run: |
           git clone --depth 1 --branch "${SOURCE_TEMPLATE_BRANCH}" "${SOURCE_TEMPLATE_REPOSITORY}" "${RUNNER_TEMP}/template-source"
 
-      - name: 同步標準文件與工作流程
+      - name: Sync docs only
         run: |
-          mkdir -p docs .github/workflows
-          rsync -av --delete "${RUNNER_TEMP}/template-source/docs/" docs/
-          cp "${RUNNER_TEMP}/template-source/GitPush.bat" GitPush.bat
-          cp "${RUNNER_TEMP}/template-source/.github/workflows/sync-template-files.yml" .github/workflows/sync-template-files.yml
+          mkdir -p docs
+          rsync -av "${RUNNER_TEMP}/template-source/docs/" docs/
 
-      - name: 檢查是否有變更
+      - name: Check for docs changes
         id: diff
         run: |
-          if git diff --quiet -- docs GitPush.bat .github/workflows/sync-template-files.yml; then
+          if git diff --quiet -- docs; then
             echo "has_changes=false" >> "${GITHUB_OUTPUT}"
-            echo "[略過] 沒有需要同步的變更"
+            echo "[Info] No docs updates found."
           else
             echo "has_changes=true" >> "${GITHUB_OUTPUT}"
-            echo "[成功] 偵測到需要提交的同步變更"
+            echo "[Info] Docs updates detected."
           fi
 
-      - name: 提交並推送同步結果
+      - name: Commit and push docs updates
         if: steps.diff.outputs.has_changes == 'true'
         run: |
-          git add docs GitPush.bat .github/workflows/sync-template-files.yml
-          git commit -m "[自動同步] 更新模板文件"
+          git add docs
+          git commit -m "[docs sync] Update docs from template"
           git pull --rebase origin "${GITHUB_REF_NAME}"
           git push origin HEAD:"${GITHUB_REF_NAME}"
