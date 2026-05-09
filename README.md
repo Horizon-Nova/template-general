@@ -1,4 +1,4 @@
-# template-general
+﻿# template-general
 
 通用專案模板，內含 Horizon-Nova 標準文件與自動同步模板文件的 GitHub Actions 工作流程。
 

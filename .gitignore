@@ -1,4 +1,4 @@
-# 排除 Visual Studio 和 VS Code 的暫存檔案與設定
+﻿# 排除 Visual Studio 和 VS Code 的暫存檔案與設定
 .vs/
 .vscode/
 

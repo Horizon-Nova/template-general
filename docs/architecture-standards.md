@@ -1,4 +1,4 @@
-# ASP.NET Core MVC 架構規範
+﻿# ASP.NET Core MVC 架構規範
 
 | 項目 | 內容 |
 | --- | --- |

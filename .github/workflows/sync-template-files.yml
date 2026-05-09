@@ -1,4 +1,4 @@
-name: Sync Template Docs
+﻿name: Sync Template Docs
 
 on:
   workflow_dispatch:
